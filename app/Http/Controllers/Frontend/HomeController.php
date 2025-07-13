@@ -16,19 +16,12 @@ class HomeController extends Controller
      */
     public function index(): View
     {
-        $latestPosts = Post::where('post_status', 'real')
-                        ->with(['user', 'region.governorate', 'favorites']) // <-- أضف 'favorites' هنا
+        $latestPosts = Post::whereIn('post_status', ['real', 'fake'])
+                        ->with(['user', 'region.governorate', 'favorites'])
                         ->orderBy('created_at', 'desc')
-                        ->limit(10)
+                        ->limit(12)
                         ->get();
 
-        $recentlyDebunked = Post::where('post_status', 'fake')
-                                ->whereNotNull('corrected_post_id')
-                                ->with(['correction', 'favorites']) // <-- أضف 'favorites' هنا أيضاً إذا أردت الزر في بطاقة التكذيب
-                                ->orderBy('updated_at', 'desc')
-                                ->limit(5)
-                                ->get();
-
-        return view('frontend.home', compact('latestPosts', 'recentlyDebunked'));
+        return view('frontend.home', compact('latestPosts'));
     }
 }

@@ -15,8 +15,8 @@ class PostController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Post::where('post_status', 'real')
-                 ->with(['user', 'region.governorate', 'favorites']); // <-- أضف 'favorites' هنا
+        $query = Post::whereIn('post_status', ['real', 'fake'])
+                 ->with(['user', 'region.governorate', 'favorites']);
 
         // فلترة حسب الكلمة المفتاحية (البحث)
         if ($request->filled('search')) {
@@ -56,7 +56,7 @@ class PostController extends Controller
             abort(404);
         }
 
-    $post->loadMissing(['user', 'region.governorate', 'images', 'videos', 'correction', 'correctedPosts', 'favorites']); // <-- أضف 'favorites' هنا
+    $post->loadMissing(['user', 'region.governorate', 'images', 'videos', 'claim', 'correction', 'correctedPosts', 'favorites']);
 
         // جلب منشورات أخرى ذات صلة (مثال: من نفس المحافظة)
         $relatedPosts = Post::where('post_status', 'real')

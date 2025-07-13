@@ -12,15 +12,13 @@ use App\Http\Requests\Admin\StoreGovernorateRequest;
 use App\Http\Requests\Admin\UpdateGovernorateRequest;
 
 
+use App\Models\Region;
+
 class GovernorateController extends Controller
 {
-    /**
-     * عرض قائمة بجميع المحافظات.
-     */
-    public function index(): View
+    public function index()
     {
-        // جلب جميع المحافظات مع ترتيبها حسب الاسم وعملية التقسيم للصفحات
-        $governorates = Governorate::orderBy('name')->paginate(15); // عرض 15 محافظة في كل صفحة
+        $governorates = Governorate::with('regions')->latest()->get();
         return view('admin.governorates.index', compact('governorates'));
     }
 
@@ -85,27 +83,32 @@ class GovernorateController extends Controller
     /**
      * حذف محافظة من قاعدة البيانات.
      */
-    public function destroy(Governorate $governorate): RedirectResponse // استخدام Model Binding
+    public function destroy(Governorate $governorate)
     {
-        try {
-            // تم العثور على المحافظة بواسطة Model Binding
-            $governorate->delete();
+        // Delete related regions first
+        $governorate->regions()->delete();
+        
+        $governorate->delete();
+        return back()->with('success', 'تم حذف المحافظة وجميع مناطقها بنجاح.');
+    }
 
-            return redirect()->route('admin.governorates.index')
-                             ->with('success', 'تم حذف المحافظة بنجاح.');
+    public function storeRegion(Request $request, Governorate $governorate)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $governorate->regions()->create($request->only('name'));
+        return back()->with('success', 'تمت إضافة المنطقة بنجاح.');
+    }
 
-        } catch (\Illuminate\Database\QueryException $e) {
-            // التقاط خطأ في حال كانت هناك قيود تمنع الحذف (مثل وجود مناطق مرتبطة)
-            if ($e->getCode() === '23000') { // رمز خطأ قيود المفتاح الأجنبي
-                return redirect()->route('admin.governorates.index')
-                                 ->with('error', 'لا يمكن حذف المحافظة لوجود مناطق أو مستخدمين مرتبطين بها.');
-            }
-            // لأي خطأ آخر
-            return redirect()->route('admin.governorates.index')
-                             ->with('error', 'حدث خطأ أثناء محاولة الحذف: ' . $e->getMessage());
-        } catch (\Exception $e) {
-             return redirect()->route('admin.governorates.index')
-                             ->with('error', 'حدث خطأ غير متوقع: ' . $e->getMessage());
-        }
+    public function updateRegion(Request $request, Region $region)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $region->update($request->only('name'));
+        return back()->with('success', 'تم تعديل المنطقة بنجاح.');
+    }
+
+    public function destroyRegion(Region $region)
+    {
+        $region->delete();
+        return back()->with('success', 'تم حذف المنطقة بنجاح.');
     }
 }

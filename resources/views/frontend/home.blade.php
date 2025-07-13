@@ -28,10 +28,11 @@
     <div class="bg-gray-50 pt-16 pb-20 px-4 sm:px-6 lg:pt-24 lg:pb-28 lg:px-8">
         <div class="relative max-w-7xl mx-auto">
             <div class="text-right">
-                <h2 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl">أحدث الأخبار الموثوقة</h2>
-                {{-- ... --}}
+                <h2 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl">آخر الأخبار</h2>
+                <p class="mt-3 sm:mt-4 max-w-2xl text-xl text-gray-500">
+                    تابع آخر الأخبار المؤكدة والمكذوبة من مصدر موثوق.
+                </p>
             </div>
-            {{-- This grid layout is still perfect for the new card design --}}
             <div class="mt-12 mx-auto grid gap-8 lg:grid-cols-1 lg:max-w-none">
                 @forelse ($latestPosts as $post)
                     @include('frontend.posts.partials.post-card', ['post' => $post])
@@ -41,23 +42,4 @@
             </div>
         </div>
     </div>
-
-     {{-- Recently Debunked Section (remains the same as it's a single column list) --}}
-     @if($recentlyDebunked->isNotEmpty())
-    <div class="bg-white pt-16 pb-20 px-4 sm:px-6 lg:pt-24 lg:pb-28 lg:px-8">
-        <div class="relative max-w-7xl mx-auto">
-             <div class="text-right">
-                <h2 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl">إشاعات تم تكذيبها مؤخرًا</h2>
-                <p class="mt-3 sm:mt-4 max-w-2xl text-xl text-gray-500">
-                    نظرة على الادعاءات المضللة التي تم التحقق منها وتصحيحها.
-                </p>
-            </div>
-             <div class="mt-12 space-y-12">
-                @foreach($recentlyDebunked as $post)
-                    @include('frontend.posts.partials.debunked-post-card', ['post' => $post])
-                @endforeach
-            </div>
-        </div>
-    </div>
-    @endif
 </x-app-layout>

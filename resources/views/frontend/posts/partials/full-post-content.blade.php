@@ -97,9 +97,44 @@
         {!! nl2br(e($post->text_content)) !!}
     </article>
 
+    <!-- Verification Result Section -->
+    @if($post->post_status === 'real' || $post->post_status === 'fake')
+    <div class="mt-10 pt-6 border-t border-gray-200">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-right">النتيجة والتحقق</h3>
+        @if($post->post_status === 'real')
+            <div class="p-4 rounded-lg bg-green-50 border border-green-200">
+                <p class="font-bold text-green-800">خبر مؤكد</p>
+                @if($post->claim && $post->claim->admin_notes)
+                <p class="text-green-700 mt-1">{{ $post->claim->admin_notes }}</p>
+                @else
+                <p class="text-green-700 mt-1">تم التحقق من صحة هذا الخبر من قبل فريقنا.</p>
+                @endif
+            </div>
+        @elseif($post->post_status === 'fake')
+            <div class="p-4 rounded-lg bg-red-50 border border-red-200">
+                <p class="font-bold text-red-800">خبر زائف</p>
+                @if($post->claim && $post->claim->admin_notes)
+                <p class="text-red-700 mt-1">{{ $post->claim->admin_notes }}</p>
+                @else
+                <p class="text-red-700 mt-1">تم التحقق وتبيّن أن هذا الخبر زائف.</p>
+                @endif
+            </div>
+        @endif
+    </div>
+    @elseif($post->post_status === 'pending_verification')
+    <div class="mt-10 pt-6 border-t border-gray-200">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4 text-right">النتيجة والتحقق</h3>
+        <div class="p-4 rounded-lg bg-yellow-50 border border-yellow-200">
+            <p class="font-bold text-yellow-800">قيد التحقق</p>
+            <p class="text-yellow-700 mt-1">يجري حاليًا التحقق من صحة هذا الخبر.</p>
+        </div>
+    </div>
+    @endif
+
+
      {{-- Attached Media Gallery --}}
      <div class="mt-10 pt-6 border-t border-gray-200">
-         @if($post->images->isNotEmpty())
+         @if($post->images->count() > 0)
             <h3 class="text-xl font-semibold text-gray-800 mb-4 text-right">معرض الوسائط</h3>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                  @foreach($post->images as $image)
@@ -113,7 +148,7 @@
           @if($post->videos->isNotEmpty())
             <div class="mt-8">
                 @foreach($post->videos as $video)
-                    <video controls preload="metadata" class="w-full rounded-lg shadow-md mt-4"><source src="{{ asset('storage/' . $video->video_url) }}" type="video/mp4"></video>
+                    <video controls preload="metadata" class="w-full rounded-lg shadow-md mt-4"><source src="{{ asset('storage/' . $video->video_path) }}" type="video/mp4"></video>
                 @endforeach
             </div>
         @endif

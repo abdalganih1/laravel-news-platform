@@ -1,5 +1,14 @@
 {{-- Responsive Post Card V3 - Horizontal on desktop with fixed image size --}}
-<article class="bg-white rounded-lg shadow-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+<article class="relative bg-white rounded-lg shadow-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+    @if($post->post_status == 'fake')
+        <span class="absolute top-2 left-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            خبر زائف
+        </span>
+    @elseif($post->post_status == 'real')
+        <span class="absolute top-2 left-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            خبر مؤكد
+        </span>
+    @endif
     <div class="flex flex-col md:flex-row-reverse">
 
         {{-- Image Container --}}

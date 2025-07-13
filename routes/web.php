@@ -105,10 +105,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // إدارة المحافظات (CRUD بدون صفحة عرض منفصلة)
     // يوفر: admin.governorates.index, create, store, edit, update, destroy
     Route::resource('governorates', \App\Http\Controllers\Admin\GovernorateController::class)->except(['show']);
-
-    // إدارة المناطق (CRUD بدون صفحة عرض منفصلة)
-    // يوفر: admin.regions.index, create, store, edit, update, destroy
-    Route::resource('regions', \App\Http\Controllers\Admin\RegionController::class)->except(['show']);
+    Route::post('governorates/{governorate}/regions', [\App\Http\Controllers\Admin\GovernorateController::class, 'storeRegion'])->name('governorates.regions.store');
+    Route::put('regions/{region}', [\App\Http\Controllers\Admin\GovernorateController::class, 'updateRegion'])->name('regions.update');
+    Route::delete('regions/{region}', [\App\Http\Controllers\Admin\GovernorateController::class, 'destroyRegion'])->name('regions.destroy');
 
     // إدارة معلومات الموقع (صفحة تعديل وتحديث فقط)
     Route::get('/site-info', [\App\Http\Controllers\Admin\SiteInfoController::class, 'edit'])->name('siteinfo.edit'); // لعرض نموذج التعديل

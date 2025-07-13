@@ -65,11 +65,11 @@ class Post extends Model
     }
 
     /**
-     * Get the claims for the post.
+     * Get the claim associated with the post.
      */
-    public function claims(): HasMany
+    public function claim(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasMany(Claim::class, 'post_id', 'post_id');
+        return $this->hasOne(Claim::class, 'resolution_post_id', 'post_id');
     }
 
     /**
