@@ -22,14 +22,15 @@ class StorePostRequest extends FormRequest
             'region_id' => ['nullable', 'integer', 'exists:regions,region_id'],
             // حالة المنشور يحددها المحرر عند الإنشاء
             'post_status' => ['required', 'string', Rule::in(['real', 'fake', 'pending_verification'])],
-             // منشور التصحيح اختياري، ومطلوب فقط إذا كانت الحالة fake
-             // التحقق من وجوده وأنه real يتم في المتحكم لضمان الدقة
+            'correction_method' => ['nullable', 'string', 'in:existing,new', 'required_if:post_status,fake'],
             'corrected_post_id' => [
                 'nullable',
                 'integer',
                 'exists:posts,post_id',
-                // 'required_if:post_status,fake' // يمكن إضافته لفرض الإدخال
-                ],
+                'required_if:correction_method,existing'
+            ],
+            'new_correction_title' => ['nullable', 'string', 'max:255', 'required_if:correction_method,new'],
+            'new_correction_content' => ['nullable', 'string', 'required_if:correction_method,new'],
             // قواعد للصور (مثال)
             'images'   => ['nullable', 'array', 'max:5'], // مصفوفة اختيارية، بحد أقصى 5 صور
             'images.*' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'], // كل عنصر يجب أن يكون صورة وبالتنسيقات والحجم المسموح

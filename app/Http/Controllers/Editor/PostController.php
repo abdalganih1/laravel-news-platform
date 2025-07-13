@@ -41,7 +41,12 @@ class PostController extends Controller
     {
         $regions = Region::with('governorate')->orderBy('governorate_id')->orderBy('name')->get();
         $groupedRegions = $regions->groupBy('governorate.name');
-        return view('editor.posts.create', compact('groupedRegions', 'claim'));
+        $realPosts = Post::where('post_status', 'real')
+                        ->orderBy('created_at', 'desc')
+                        ->limit(100) // Limit for performance
+                        ->get(['post_id', 'title']);
+
+        return view('editor.posts.create', compact('groupedRegions', 'claim', 'realPosts'));
     }
 
     /**
@@ -51,7 +56,32 @@ class PostController extends Controller
     {
         $validatedData = $request->validated();
         $validatedData['user_id'] = Auth::id();
-        $post = Post::create($validatedData);
+        $correctionPostId = null;
+
+        // Handle correction post creation first if needed
+        if ($validatedData['post_status'] === 'fake' && isset($validatedData['correction_method']) && $validatedData['correction_method'] === 'new') {
+            $correctionPost = Post::create([
+                'user_id' => Auth::id(),
+                'title' => $validatedData['new_correction_title'],
+                'text_content' => $validatedData['new_correction_content'],
+                'post_status' => 'real', // The correction is always 'real'
+                'region_id' => $validatedData['region_id'] ?? null, // Can inherit region
+            ]);
+            $correctionPostId = $correctionPost->post_id;
+        } elseif ($validatedData['post_status'] === 'fake' && isset($validatedData['correction_method']) && $validatedData['correction_method'] === 'existing') {
+            $correctionPostId = $validatedData['corrected_post_id'];
+        }
+
+        // Now, create the main post
+        $post = Post::create([
+            'user_id' => $validatedData['user_id'],
+            'title' => $validatedData['title'],
+            'text_content' => $validatedData['text_content'],
+            'post_status' => $validatedData['post_status'],
+            'region_id' => $validatedData['region_id'] ?? null,
+            'corrected_post_id' => $correctionPostId,
+        ]);
+
 
         // --- Handle Image Uploads with Intervention Image v3 ---
         if ($request->hasFile('images')) {

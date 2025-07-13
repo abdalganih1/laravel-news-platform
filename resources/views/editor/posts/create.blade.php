@@ -114,15 +114,53 @@
                                     </div>
                                 </div>
 
-                                 {{-- Corrected Post ID (Conditional) - Using Alpine.js --}}
-                                <div x-data="{ isFake: {{ old('post_status') == 'fake' ? 'true' : 'false' }} }" x-show="isFake" x-cloak class="pt-6 border-t border-gray-200">
-                                    <label for="corrected_post_id" class="block text-sm font-medium text-gray-700 text-right mb-1">
-                                        ربط بمنشور التصحيح (إذا كان هذا المنشور مزيفًا، اربطه بالمنشور الصحيح)
-                                    </label>
-                                    <input type="number" name="corrected_post_id" id="corrected_post_id" value="{{ old('corrected_post_id') }}" min="1"
-                                           class="block w-full md:w-1/2 mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm" dir="ltr">
-                                    <p class="mt-1 text-xs text-gray-500 text-right">أدخل رقم المنشور الصحيح الذي يوضح الحقيقة.</p>
-                                    @error('corrected_post_id') <p class="mt-1 text-xs text-red-600 text-right">{{ $message }}</p> @enderror
+                                 {{-- Conditional Correction Section --}}
+                                <div x-data="{ isFake: '{{ old('post_status', 'real') }}' === 'fake', correctionMethod: '{{ old('correction_method', 'existing') }}' }" x-show="isFake" x-cloak class="pt-6 border-t border-gray-200 space-y-4 transition-all duration-300">
+                                    <h4 class="text-md font-semibold text-gray-800 text-right">ربط التصحيح (اختياري)</h4>
+                                    
+                                    {{-- Correction Method Radio Buttons --}}
+                                    <div class="flex justify-end space-x-4 space-x-reverse">
+                                        <label class="flex items-center">
+                                            <input type="radio" name="correction_method" value="existing" x-model="correctionMethod" class="form-radio h-4 w-4 text-cyan-600">
+                                            <span class="mr-2 text-sm text-gray-700">ربط بمنشور حالي</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="correction_method" value="new" x-model="correctionMethod" class="form-radio h-4 w-4 text-cyan-600">
+                                            <span class="mr-2 text-sm text-gray-700">إنشاء تصحيح جديد</span>
+                                        </label>
+                                    </div>
+                                    @error('correction_method') <p class="mt-1 text-xs text-red-600 text-right">{{ $message }}</p> @enderror
+
+                                    {{-- 1. Link to Existing Post --}}
+                                    <div x-show="correctionMethod === 'existing'" class="space-y-2">
+                                        <label for="corrected_post_id" class="block text-sm font-medium text-gray-700 text-right">اختر المنشور الصحيح</label>
+                                        <select name="corrected_post_id" id="corrected_post_id"
+                                                class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-200 focus:ring-opacity-50 text-right sm:text-sm">
+                                            <option value="">-- اختر منشورًا --</option>
+                                            @foreach($realPosts as $realPost)
+                                                <option value="{{ $realPost->post_id }}" {{ old('corrected_post_id') == $realPost->post_id ? 'selected' : '' }}>
+                                                   #{{ $realPost->post_id }} - {{ Str::limit($realPost->title, 70) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('corrected_post_id') <p class="mt-1 text-xs text-red-600 text-right">{{ $message }}</p> @enderror
+                                    </div>
+
+                                    {{-- 2. Create New Correction Post --}}
+                                    <div x-show="correctionMethod === 'new'" class="space-y-4 p-4 bg-gray-50 rounded-lg border">
+                                        <div>
+                                            <label for="new_correction_title" class="block text-sm font-medium text-gray-700 text-right mb-1">عنوان المنشور الصحيح <span class="text-red-600">*</span></label>
+                                            <input type="text" name="new_correction_title" id="new_correction_title" value="{{ old('new_correction_title') }}"
+                                                   class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-200 focus:ring-opacity-50 text-right sm:text-sm">
+                                            @error('new_correction_title') <p class="mt-1 text-xs text-red-600 text-right">{{ $message }}</p> @enderror
+                                        </div>
+                                        <div>
+                                            <label for="new_correction_content" class="block text-sm font-medium text-gray-700 text-right mb-1">محتوى المنشور الصحيح <span class="text-red-600">*</span></label>
+                                            <textarea name="new_correction_content" id="new_correction_content" rows="5"
+                                                      class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-200 focus:ring-opacity-50 text-right sm:text-sm">{{ old('new_correction_content') }}</textarea>
+                                            @error('new_correction_content') <p class="mt-1 text-xs text-red-600 text-right">{{ $message }}</p> @enderror
+                                        </div>
+                                    </div>
                                 </div>
 
 

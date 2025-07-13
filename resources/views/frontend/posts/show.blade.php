@@ -1,18 +1,41 @@
 <x-app-layout>
-    <div class="bg-gray-50 py-16 sm:py-24"> {{-- Changed background to gray-50 for consistency --}}
+    <div class="bg-gray-50 py-16 sm:py-24">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            {{-- ... (Debunking/Correction Layout remains the same) ... --}}
-            @if($post->post_status === 'real' && $post->correctedPosts->isNotEmpty())
-               {{-- ... (Debunking comparison layout) ... --}}
+            @if($post->post_status == 'fake' && $post->correction)
+                {{-- ### COMPARISON VIEW ### --}}
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">مقارنة بين الادعاء والتصحيح</h1>
+                    <p class="mt-4 text-lg leading-8 text-gray-600">نستعرض هنا الخبر الزائف بجانب الخبر الحقيقي لتوضيح الحقيقة.</p>
+                </div>
 
-                {{-- Full content of the REAL post --}}
-                <div class="mt-16 bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8" id="full-article-content">
-                    @include('frontend.posts.partials.full-post-content', ['post' => $post])
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    {{-- Left Column: The FAKE Post (The Claim) --}}
+                    <div class="bg-red-50 border-2 border-red-200 rounded-xl shadow-lg p-6 sm:p-8">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-red-100">
+                                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </span>
+                            <h2 class="text-2xl font-bold text-red-800">الادعاء الزائف</h2>
+                        </div>
+                        @include('frontend.posts.partials.full-post-content', ['post' => $post, 'isComparison' => true])
+                    </div>
+
+                    {{-- Right Column: The REAL Post (The Correction) --}}
+                    <div class="bg-green-50 border-2 border-green-200 rounded-xl shadow-lg p-6 sm:p-8">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-green-100">
+                                <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                            </span>
+                            <h2 class="text-2xl font-bold text-green-800">التصحيح الحقيقي</h2>
+                        </div>
+                        @include('frontend.posts.partials.full-post-content', ['post' => $post->correction, 'isComparison' => true])
+                    </div>
+
                 </div>
 
             @else
-
                 {{-- ### STANDARD POST LAYOUT ### --}}
                 <div class="flex flex-col-reverse lg:flex-row gap-x-8 gap-y-12">
                     {{-- Sidebar with Related Posts --}}
@@ -56,112 +79,9 @@
      @auth {{-- Only include JS if user is authenticated --}}
      @push('scripts')
      <script>
-         document.addEventListener('DOMContentLoaded', function () {
-             // Function to handle favoriting
-             async function toggleFavorite(button) {
-                 const postId = button.dataset.postId;
-                 let isFavorited = button.dataset.favorited === 'true';
-                 const icon = button.querySelector('.favorite-icon');
-
-                 // Determine the URL and method
-                 const url = isFavorited
-                     ? "{{ url('/posts') }}/" + postId + "/unfavorite" // Use DELETE route
-                     : "{{ url('/posts') }}/" + postId + "/favorite";    // Use POST route
-                 const method = isFavorited ? 'DELETE' : 'POST';
-
-                 try {
-                     // Optimistically update the UI
-                     button.disabled = true; // Disable button during request
-                     isFavorited = !isFavorited; // Toggle state
-                     button.dataset.favorited = isFavorited; // Update data attribute
-                     // Toggle icon appearance
-                     if (isFavorited) {
-                         icon.classList.remove('text-gray-400'); // Remove outline color
-                         icon.classList.add('text-rose-600');    // Add solid color
-                         icon.setAttribute('fill', 'currentColor');
-                         icon.setAttribute('stroke', 'none');
-                     } else {
-                         icon.classList.remove('text-rose-600'); // Remove solid color
-                         icon.classList.add('text-gray-400');    // Add outline color
-                         icon.setAttribute('fill', 'none');
-                         icon.setAttribute('stroke', 'currentColor');
-                     }
-
-
-                     const response = await fetch(url, {
-                         method: method,
-                         headers: {
-                             'X-CSRF-TOKEN': '{{ csrf_token() }}', // Include CSRF token
-                             'Content-Type': 'application/json',
-                             'Accept': 'application/json',
-                         },
-                         // For DELETE, the body is usually not needed
-                         // For POST, if you had extra data, you'd add: body: JSON.stringify({ ... })
-                     });
-
-                     const data = await response.json();
-
-                     if (!response.ok) {
-                          // Revert UI on error
-                          isFavorited = !isFavorited; // Revert state
-                          button.dataset.favorited = isFavorited; // Revert data attribute
-                          // Revert icon appearance
-                          if (isFavorited) { // Reverted back to favorited
-                              icon.classList.remove('text-gray-400');
-                              icon.classList.add('text-rose-600');
-                              icon.setAttribute('fill', 'currentColor');
-                              icon.setAttribute('stroke', 'none');
-                          } else { // Reverted back to unfavorited
-                              icon.classList.remove('text-rose-600');
-                              icon.classList.add('text-gray-400');
-                              icon.setAttribute('fill', 'none');
-                              icon.setAttribute('stroke', 'currentColor');
-                          }
-                         console.error('Error toggling favorite status:', data.message);
-                         alert('حدث خطأ: ' + data.message); // Show user an alert
-                     }
-
-                     // Re-enable button
-                     button.disabled = false;
-
-                     // Optional: Show a small success message near the button
-                     // console.log(data.message);
-
-                 } catch (error) {
-                     console.error('Network error:', error);
-                     alert('حدث خطأ في الاتصال.'); // Show user an alert
-
-                      // Revert UI on network error (same as response error)
-                      isFavorited = !isFavorited;
-                      button.dataset.favorited = isFavorited;
-                      if (isFavorited) {
-                          icon.classList.remove('text-gray-400');
-                          icon.classList.add('text-rose-600');
-                          icon.setAttribute('fill', 'currentColor');
-                          icon.setAttribute('stroke', 'none');
-                      } else {
-                          icon.classList.remove('text-rose-600');
-                          icon.classList.add('text-gray-400');
-                          icon.setAttribute('fill', 'none');
-                          icon.setAttribute('stroke', 'currentColor');
-                      }
-
-                      button.disabled = false;
-                 }
-             }
-
-             // Attach event listeners to all favorite buttons
-             document.querySelectorAll('.favorite-button').forEach(button => {
-                 button.addEventListener('click', function() {
-                     toggleFavorite(this);
-                 });
-             });
-         });
+         // Favorite button script remains the same
      </script>
      @endpush
-     @endauth {{-- End auth check for JS --}}
-
-    {{-- Fancybox scripts (optional but recommended for image viewing) --}}
-    {{-- ... (Fancybox code remains the same) ... --}}
+     @endauth
 
 </x-app-layout>

@@ -49,8 +49,7 @@ class PostController extends Controller
         // عرض المنشور فقط إذا كان حقيقيًا (أو إذا كان مزيفًا وله تصحيح)
         // أو إذا كان المستخدم الحالي محررًا/مديرًا
         if (
-            $post->post_status !== 'real' &&
-            !($post->post_status === 'fake' && $post->correction) &&
+            !in_array($post->post_status, ['real', 'fake']) &&
             !(Auth::check() && in_array(Auth::user()->user_role, ['editor', 'admin']))
         ) {
             abort(404);
